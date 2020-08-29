@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/normalize.css">
+    <link rel="stylesheet" href="static/style.css">
+    <title>Library</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="keywords" content="">
+  </head>
+  <body>
+    <div class="grid-container"> 
+      <div class="grid-container__header">
+        <h1>Library</h1>
+        <button  class="header-button" type="button" value="createBook">Add new book</button>
+        <div class="header-sort" data-sortoption="default">
+          <button class="header-sort__button active" type="button" value="default">Default</button>
+          <button class="header-sort__button" type="button" value="read-status">Sort by read status</button>
+          <!-- <button class="header-button-sort" type="button" value="smth">Sort smth</button> -->
+        </div>
+      </div>
+      <div class="grid-container__main">
+        
+          <!-- content -->
+
+      </div>
+      <div class="grid-container__side hidden">
+        <div class="side-sticky">
+
+        </div>
+      </div>
+      <div class="grid-container__footer"></div>
+    </div>
+    <div class="modal">
+      <div class="modal-content">
+        <form class="modal-form" action="" method="post">
+          <div class="modal-form__group">
+            <label for="title">Book title</label>
+            <input type="text" name="title" id="title" maxlength="30" required>
+          </div>
+          <div class="modal-form__group">
+            <label for="author">Author</label>
+            <input type="text" name="author" id="author" maxlength="30" required>
+          </div>
+          <div class="modal-form__group">
+            <label for="numpages">Number of pages</label>
+            <input type="text" name="numberOfPages" id="numpages" maxlength="5" required>
+          </div>
+          <div class="modal-form__group">
+            <label for="genre">Genre</label>
+            <input type="text" name="genre" id="genre" maxlength="10" disabled>
+          </div>
+          <div class="modal-form__group">
+            <label for="description">Description</label>
+            <input type="text" name="description" id="description" disabled>
+          </div>
+          <div class="modal-form__checkbox">
+            <input type="checkbox" name="read-status" id="readstatus" value="true">
+            <label for="readstatus">Have you read it?</label>
+          </div>
+          <button type="submit">Add book</button> 
+          <button type="button" value="close">Close</button>
+        </form> 
+      </div>  
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
