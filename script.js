@@ -255,6 +255,8 @@ function Controller(model, view) {
   // init on DOMload 
   this.model.addBook({ title: 'test', author: 'test', readStatus: false });
   this.model.addBook({ title: 'test1', author: 'test1', readStatus: true });
+  this.model.addBook({ title: 'test', author: 'test', readStatus: false });
+  this.model.addBook({ title: 'test1', author: 'test1', readStatus: true });  
 }
 
 const app = new Controller(new Model(), new View());

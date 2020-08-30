@@ -110,9 +110,8 @@ button:focus {
   grid-row: 2;
   grid-column: 1;
   
-  display: flex;
-  flex-wrap: wrap; 
-
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(25rem, 1fr));
   margin-top: 5rem;
 }
 
@@ -136,7 +135,6 @@ button:focus {
 }
 
 .main-item__container {
-  flex-basis: 33%;
   display: flex;
   justify-content: center;
 }
@@ -160,7 +158,6 @@ button:focus {
 }
 
 .main-item:hover {
- /*  transform: perspective(100rem) rotateY(-10deg);  */
   transform: scale(1.05);
   /* box-shadow: -.2rem .1rem .5rem .1rem rgba(0,0,0,0.3);  */
 }
@@ -304,10 +301,7 @@ button:focus {
 
 
 
-
-
-
-
+ 
 @media screen and (max-width: 1200px) {
   .main-item {
     height: 33rem;
@@ -320,10 +314,9 @@ button:focus {
   body {
     font-size: 1.5rem;
   }
-  .main-item__container {
-    flex-basis: 50%;
+  .grid-container__main {
+    grid-template-columns: repeat(2, 1fr);
   }
-
   .main-item {
     height: 33rem;
     width: 23rem;
@@ -344,11 +337,9 @@ button:focus {
   .grid-container {
     grid-template-columns: 1fr;
   }
-  
   .grid-container__header h1 {
     font-size: 4rem;
   }
-  
   .main-item {
     height: 26rem;
     width: 18rem;
@@ -374,9 +365,6 @@ button:focus {
   }
   .grid-container {
     grid-template-columns: 1fr;
-  }
-  .grid-container__main {
-    grid-template-columns: repeat(2, 1fr);
   }
   .grid-container__header h1 {
     font-size: 4rem;
