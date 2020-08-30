@@ -22,10 +22,6 @@ function Model() {
     this.onBooksChange = handler;
   }
 
-  /* this.bindBookSort = function (handler) {
-    this.onBooksSort = handler;
-  } */
-
   this.deleteBook = function (index) {
     index = this._toNumber(index);
     this.books.delete(index);
@@ -40,8 +36,13 @@ function Model() {
   this.sortBooks = function (method) {
     this.sortedBooks.clear(); // prevent memory leak
     this.sortedBooks = this.sort[method](); // false ahead
-    this.onBooksChange(this.sortedBooks);  
-    //return this.sortedBooks;
+    this.onBooksChange(this.sortedBooks);
+  }
+
+  this.bookEdit = function (index, obj) {
+    index = this._toNumber(index);
+    for(const prop in obj)
+      this.books.get(index)[prop] = obj[prop];
   }
 
   this._toNumber = function (value) {
@@ -80,6 +81,12 @@ function View() {
     this.onBookChangeReadStatus = handler;
   }
 
+  this.bindOnBookEdit = function (handler) {
+    this.booksContainer.addEventListener('focusout', (e) => {
+        handler(this._getBookRoot(e.target).firstElementChild.dataset.index, this._temporaryProperty);
+      });
+  }
+
   this.bindOnBooksSort = function (handler) {
     this.sortBookButtons.addEventListener('click', e => {
       if (e.target.classList.contains('active'))
@@ -95,7 +102,7 @@ function View() {
     });
   }
 
-  this.initLocalListeners = function () {
+  this._initLocalListeners = function () {
     this.createBookButton.addEventListener('click', e => {
       this.modalBox.style = 'display: block;';
       this.form.querySelector('input').focus(); // first input 
@@ -108,21 +115,22 @@ function View() {
       }
     });
 
-    this.booksContainer.addEventListener('click', e => {
-      if (e.target.classList.contains('main-item__delete')) {
-        this._getBookRoot(e.target).remove();
-        this.onBookDelete(e.target.parentNode.dataset.index);
-      }
-      else if (e.target.classList.contains('main-item__readstatus')) {
-        e.target.classList.toggle('false');
-        this.onBookChangeReadStatus(this._getBookRoot(e.target).firstElementChild.dataset.index);
-      }
-
-    });
+    this.booksContainer.addEventListener('input', (e) => {
+      this._temporaryProperty = {[e.target.dataset.name]: e.target.textContent}; 
+    }); 
   };
-  this.initLocalListeners();
+  this._initLocalListeners();
 
-
+  this.booksContainer.addEventListener('click', e => {
+    if (e.target.classList.contains('main-item__delete')) {
+      this._getBookRoot(e.target).remove();
+      this.onBookDelete(e.target.parentNode.dataset.index);
+    } else
+    if (e.target.classList.contains('main-item__readstatus')) {
+      e.target.classList.toggle('false');
+      this.onBookChangeReadStatus(this._getBookRoot(e.target).firstElementChild.dataset.index);
+    }
+  });
 
   this._fetchForm = function () {
     const book = {};
@@ -149,9 +157,12 @@ function View() {
           <path d="M12,0C5.4,0,0,5.4,0,12s5.4,12,12,12s12-5.4,12-12S18.6,0,12,0z M17,13H7v-2h10V13z"></path>
         </svg>
         </div>
-        <h1>${book.title}</h1>
-        <h2>${book.author}</h2>
-        <div class="main-item__pages">${book.numberOfPages} pages</div>
+        <h1 data-name="title" contentEditable="true">${book.title}</h1>
+        <h2 data-name="author" contentEditable="true">${book.author}</h2>
+        <div class="main-item__pages">
+          <span data-name="numberOfPages" contentEditable="true">${book.numberOfPages}</span> 
+          <span>pages</span>
+        </div>
         <div class="main-item__readstatus-container">
           <div class="main-item__readstatus ${book.readStatus ? '' : false}"></div>
         </div>
@@ -174,9 +185,12 @@ function View() {
           <path d="M12,0C5.4,0,0,5.4,0,12s5.4,12,12,12s12-5.4,12-12S18.6,0,12,0z M17,13H7v-2h10V13z"></path>
         </svg>
         </div>
-        <h1>${book.title}</h1>
-        <h2>${book.author}</h2>
-        <div class="main-item__pages">${book.numberOfPages} pages</div>
+        <h1 contentEditable="true">${book.title}</h1>
+        <h2 contentEditable="true">${book.author}</h2>
+        <div class="main-item__pages">
+          <span data-name="numberOfPages" contentEditable="true">${book.numberOfPages}</span> 
+          <span>pages</span>
+        </div>
         <div class="main-item__readstatus-container">
           <div class="main-item__readstatus ${book.readStatus ? '' : false}"></div>
         </div>
@@ -225,6 +239,10 @@ function Controller(model, view) {
     this.model.changeReadStatus(index);
   }
 
+  this.onBookEdit = (key, editedBook) => {
+    this.model.bookEdit(key, editedBook);
+  }
+
   this.model.bindBookChange(this.onBookChange);
   this.model.bindBooksChange(this.onBooksChange);
 
@@ -232,6 +250,7 @@ function Controller(model, view) {
   this.view.bindBookDelete(this.onBookDeleteModel);
   this.view.bindBookChangeReadStatus(this.onBookChangeReadStatus);
   this.view.bindOnBooksSort(this.onBooksSort);
+  this.view.bindOnBookEdit(this.onBookEdit);
 
   // init on DOMload 
   this.model.addBook({ title: 'test', author: 'test', readStatus: false });
