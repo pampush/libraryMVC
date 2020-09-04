@@ -1,4 +1,27 @@
+ 
 "use strict"
+
+function Event() {
+  let events = {};
+  let last =  undefined;
+  this.on = function(evt, handler) {
+    (events[evt] || (events[evt] = [])).push(handler);
+  } 
+  this.emit = function(evt, ...arg) {
+    last = evt;
+    for(let item of events[evt])
+      item(...arg);
+  }
+
+  this.removeLastEventHandler = function() {
+    events[last].pop(); // delete event[last]
+  }
+  
+  this.getEvents = function() {
+    return {...events};
+  }
+}
+
 function Model() {
   this.books = new Map();
   this.sortedBooks = new Map();
@@ -11,15 +34,8 @@ function Model() {
   this.addBook = function (formData) {
     const key = Date.now() + Math.floor(Math.random() * 100); // FIXME:  
     this.books.set(key, formData);
-    this.onBookChange(key, this.books.get(key)); // or formData
-  }
 
-  this.bindBookChange = function (handler) {
-    this.onBookChange = handler;
-  }
-
-  this.bindBooksChange = function (handler) {
-    this.onBooksChange = handler;
+    eventEmitter.emit('onBookChange', key, this.books.get(key)); // or formData
   }
 
   this.deleteBook = function (index) {
@@ -36,7 +52,7 @@ function Model() {
   this.sortBooks = function (method) {
     this.sortedBooks.clear(); // prevent memory leak
     this.sortedBooks = this.sort[method](); // false ahead
-    this.onBooksChange(this.sortedBooks);
+    eventEmitter.emit('onBooksChange', this.sortedBooks);
   }
 
   this.bookEdit = function (index, obj) {
@@ -62,45 +78,33 @@ function View() {
   this.booksContainer = document.querySelector('.grid-container__main');
   this.sortBookButtons = document.querySelector('.header-sort');
 
-  this.bindAddBook = function (handler) {
-    this.form.addEventListener('submit', e => {
-      e.preventDefault();
-      const book = this._fetchForm();
-      this.modalBox.style = 'none';
-      this.form.reset();
+  this.form.addEventListener('submit', e => {
+    e.preventDefault();
+    const book = this._fetchForm();
+    this.modalBox.style = 'none';
+    this.form.reset();
 
-      handler(book);
-    });
-  };
+    eventEmitter.emit('addBook', book);
+  });
 
-  this.bindBookDelete = function (handler) {
-    this.onBookDelete = handler;
-  }
+  
+  this.booksContainer.addEventListener('focusout', (e) => {
+      eventEmitter.emit('onBookEdit', this._getBookRoot(e.target).firstElementChild.dataset.index, this._temporaryProperty);
+  });
 
-  this.bindBookChangeReadStatus = function (handler) {
-    this.onBookChangeReadStatus = handler;
-  }
+  this.sortBookButtons.addEventListener('click', e => {
+    if (e.target.classList.contains('active'))
+      return;
 
-  this.bindOnBookEdit = function (handler) {
-    this.booksContainer.addEventListener('focusout', (e) => {
-        handler(this._getBookRoot(e.target).firstElementChild.dataset.index, this._temporaryProperty);
-      });
-  }
+    [...e.target.parentNode.children].find((node) => node.classList.contains('active')).classList.remove('active');
+    e.target.classList.add('active')
 
-  this.bindOnBooksSort = function (handler) {
-    this.sortBookButtons.addEventListener('click', e => {
-      if (e.target.classList.contains('active'))
-        return;
-
-      [...e.target.parentNode.children].find((node) => node.classList.contains('active')).classList.remove('active');
-      e.target.classList.add('active')
-
-      if (e.target.value == 'default')
-        handler('default');
-      else if (e.target.value == 'read-status')
-        handler('readStatus');
-    });
-  }
+    if (e.target.value == 'default')
+      eventEmitter.emit('onBooksSort', 'default');
+    else if (e.target.value == 'read-status')
+      eventEmitter.emit('onBooksSort', 'readStatus');
+  });
+  
 
   this._initLocalListeners = function () {
     this.createBookButton.addEventListener('click', e => {
@@ -124,11 +128,11 @@ function View() {
   this.booksContainer.addEventListener('click', e => {
     if (e.target.classList.contains('main-item__delete')) {
       this._getBookRoot(e.target).remove();
-      this.onBookDelete(e.target.parentNode.dataset.index);
+      eventEmitter.emit('onBookDelete', e.target.parentNode.dataset.index);
     } else
     if (e.target.classList.contains('main-item__readstatus')) {
       e.target.classList.toggle('false');
-      this.onBookChangeReadStatus(this._getBookRoot(e.target).firstElementChild.dataset.index);
+      eventEmitter.emit('onBookChangeReadStatus', this._getBookRoot(e.target).firstElementChild.dataset.index);
     }
   });
 
@@ -216,7 +220,6 @@ function Controller(model, view) {
 
   this.handleSubmit = (book) => {
     this.model.addBook(book);
-    //this.render(book);
   };
 
   this.onBookChange = (key, book) => {
@@ -243,14 +246,13 @@ function Controller(model, view) {
     this.model.bookEdit(key, editedBook);
   }
 
-  this.model.bindBookChange(this.onBookChange);
-  this.model.bindBooksChange(this.onBooksChange);
-
-  this.view.bindAddBook(this.handleSubmit);
-  this.view.bindBookDelete(this.onBookDeleteModel);
-  this.view.bindBookChangeReadStatus(this.onBookChangeReadStatus);
-  this.view.bindOnBooksSort(this.onBooksSort);
-  this.view.bindOnBookEdit(this.onBookEdit);
+  eventEmitter.on('onBooksChange', this.onBooksChange);
+  eventEmitter.on('onBookChange', this.onBookChange);
+  eventEmitter.on('addBook', this.handleSubmit);
+  eventEmitter.on('onBookDelete',this.onBookDeleteModel);
+  eventEmitter.on('onBookChangeReadStatus', this.onBookChangeReadStatus);
+  eventEmitter.on('onBooksSort', this.onBooksSort);
+  eventEmitter.on('onBookEdit', this.onBookEdit);
 
   // init on DOMload 
   this.model.addBook({ title: 'test', author: 'test', readStatus: false });
@@ -259,4 +261,5 @@ function Controller(model, view) {
   this.model.addBook({ title: 'test1', author: 'test1', readStatus: true });  
 }
 
+const eventEmitter = new Event(); // is global definition bad?
 const app = new Controller(new Model(), new View());
