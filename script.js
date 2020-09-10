@@ -236,7 +236,7 @@ function Controller(model, view) {
 
   this.onBookDeleteModel = (index) => {
     this.model.deleteBook(index);
-  }
+  } 
 
   this.onBookChangeReadStatus = (index) => {
     this.model.changeReadStatus(index);
@@ -261,5 +261,5 @@ function Controller(model, view) {
   this.model.addBook({ title: 'test1', author: 'test1', readStatus: true });  
 }
 
-const eventEmitter = new Event(); // is global definition bad?
+const eventEmitter = new Event();
 const app = new Controller(new Model(), new View());
