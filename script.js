@@ -1,6 +1,13 @@
- 
-"use strict"
+ "use strict"
 
+
+ /**
+  * TODO: seperate code into appropriate files
+  */
+ 
+/**
+ * dumb observer/pubsub ??? implemetation 
+ */
 function Event() {
   let events = {};
   let last =  undefined;
@@ -22,6 +29,9 @@ function Event() {
   }
 }
 
+/**
+ * MODEL
+ */
 function Model() {
   this.books = new Map();
   this.sortedBooks = new Map();
@@ -32,7 +42,7 @@ function Model() {
   }
 
   this.addBook = function (formData) {
-    const key = Date.now() + Math.floor(Math.random() * 100); // FIXME:  
+    const key = Date.now() + Math.floor(Math.random() * 100); // FIXME: change randomizer 
     this.books.set(key, formData);
 
     eventEmitter.emit('onBookChange', key, this.books.get(key)); // or formData
