@@ -309,7 +309,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       eventEmitter.emit('pageLoaded', (book) => view.renderBooksFromDb(book)); // callback
-    })
+    }, {once:true})
 
     //eventEmitter.on('onBooksChange', this.onBooksChange);
     //eventEmitter.on('onBookChange', this.onBookChange);
